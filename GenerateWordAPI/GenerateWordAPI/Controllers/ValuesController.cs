@@ -20,7 +20,7 @@ namespace GenerateWordAPI.Controllers
         [HttpGet("{id}")]
         public string Get(int id)
         {
-            Program.CreateFromTemplate("hello.docx", "goodbye.docx");
+            Program.CreateFromTemplate("hello.docx", "goodbye.docx",id);
             return "value";
         }
 
