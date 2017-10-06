@@ -1,0 +1,9 @@
+C:\github\generate-word\GenerateWordAPI\GenerateWordAPI\bin\Debug\netcoreapp1.0\GenerateWordAPI.deps.json
+C:\github\generate-word\GenerateWordAPI\GenerateWordAPI\bin\Debug\netcoreapp1.0\GenerateWordAPI.runtimeconfig.json
+C:\github\generate-word\GenerateWordAPI\GenerateWordAPI\bin\Debug\netcoreapp1.0\GenerateWordAPI.runtimeconfig.dev.json
+C:\github\generate-word\GenerateWordAPI\GenerateWordAPI\bin\Debug\netcoreapp1.0\GenerateWordAPI.dll
+C:\github\generate-word\GenerateWordAPI\GenerateWordAPI\bin\Debug\netcoreapp1.0\GenerateWordAPI.pdb
+C:\github\generate-word\GenerateWordAPI\GenerateWordAPI\obj\Debug\netcoreapp1.0\GenerateWordAPI.csprojResolveAssemblyReference.cache
+C:\github\generate-word\GenerateWordAPI\GenerateWordAPI\obj\Debug\netcoreapp1.0\GenerateWordAPI.AssemblyInfo.cs
+C:\github\generate-word\GenerateWordAPI\GenerateWordAPI\obj\Debug\netcoreapp1.0\GenerateWordAPI.dll
+C:\github\generate-word\GenerateWordAPI\GenerateWordAPI\obj\Debug\netcoreapp1.0\GenerateWordAPI.pdb
