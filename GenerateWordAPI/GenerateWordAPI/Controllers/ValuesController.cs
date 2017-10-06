@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using System.IO;
 
 namespace GenerateWordAPI.Controllers
 {
@@ -20,15 +22,32 @@ namespace GenerateWordAPI.Controllers
         [HttpGet("{id}")]
         public string Get(int id)
         {
-            Program.CreateFromTemplate("hello.docx", "goodbye.docx",id);
+            Program.CreateFromTemplate("template.docx", "goodbye.docx",id);
             return "value";
         }
 
         // POST api/values
         [HttpPost]
         //public void Post([FromBody]string value)
-        public string Post([FromBody]string value)
+        //public string Post([FromBody]string value)
+        public Problems Post([FromBody]Problems value)
         {
+            /*    JsonTextReader reader = new JsonTextReader(new StringReader(value));
+                string response = "";
+                while (reader.Read())
+                {
+
+                    if (reader.Value != null)
+                    {
+                        response += "Token: " + reader.TokenType + "Value: " + reader.Value;
+                    }
+                    else
+                    {
+                        response += "Token: " + reader.TokenType;
+                    }
+
+                }*/
+            
             return value;
         }
 
@@ -42,6 +61,14 @@ namespace GenerateWordAPI.Controllers
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
+        }
+        public class Problems
+        {
+            [JsonProperty("ProblemID")]
+            public string ProblemID { get; set; }
+
+            [JsonProperty("State")]
+            public string State { get; set; }
         }
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Hosting;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
+using Newtonsoft.Json;
 
 namespace GenerateWordAPI
 {
