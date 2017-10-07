@@ -50,12 +50,14 @@ namespace GenerateWordAPI
                 var mainPart = wordDocument.MainDocumentPart;
                 var document = mainPart.Document;
                 var body = document.Body;
-                
+                Run r = document.Descendants<Run>().First();
+
+                r = replaceTextInRun(r, "Halloisen");
 
                 // Add a Paragraph and a Run with the specified Text
                 var para = body.AppendChild(new Paragraph());
                 var run = para.AppendChild(new Run());
-                run.AppendChild(new Text("Hello World" + data.name));
+                run.AppendChild(new Text(data.name));
                 //
                 Table table = addTable(data.services);
                 document.Body.Append(table);
@@ -166,6 +168,21 @@ namespace GenerateWordAPI
             public List<Service> services { get; set; }
             public long toDate { get; set; }
         }
+        public static Run replaceTextInRun(Run r, string newText)
+        {
+            string innerText = r.InnerText;
+            string modifiedString = "";
+            modifiedString = r.InnerText.Replace(innerText, newText);
+            // if the InnerText doesn't modify
+            if (modifiedString != r.InnerText)
+            {
+                Text t = new Text(modifiedString);
+                r.RemoveAllChildren<Text>();
+                r.AppendChild<Text>(t);
+            }
+            return r;
+        }
+
         public static void ReplaceTextByTag(string sdtBlockTag, string newtext, List<SdtBlock> sdtList)
         {
             // https://blogs.msdn.microsoft.com/brian_jones/2009/01/28/traversing-in-the-open-xml-dom/
@@ -207,7 +224,7 @@ namespace GenerateWordAPI
           
 
 
-            }
         }
+        
     }
 }
