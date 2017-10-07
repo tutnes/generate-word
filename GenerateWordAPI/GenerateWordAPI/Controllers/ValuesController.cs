@@ -22,7 +22,7 @@ namespace GenerateWordAPI.Controllers
         [HttpGet("{id}")]
         public string Get(int id)
         {
-            Program.CreateFromTemplate("template.docx", "goodbye.docx",id);
+            
             return "value";
         }
 
@@ -30,25 +30,11 @@ namespace GenerateWordAPI.Controllers
         [HttpPost]
         //public void Post([FromBody]string value)
         //public string Post([FromBody]string value)
-        public Problems Post([FromBody]Problems value)
+        public Program.ReportData Post([FromBody]Program.ReportData data)
         {
-            /*    JsonTextReader reader = new JsonTextReader(new StringReader(value));
-                string response = "";
-                while (reader.Read())
-                {
+            Program.CreateFromTemplate("template.docx", "goodbye.docx", data);
 
-                    if (reader.Value != null)
-                    {
-                        response += "Token: " + reader.TokenType + "Value: " + reader.Value;
-                    }
-                    else
-                    {
-                        response += "Token: " + reader.TokenType;
-                    }
-
-                }*/
-            
-            return value;
+            return data;
         }
 
         // PUT api/values/5
@@ -62,13 +48,6 @@ namespace GenerateWordAPI.Controllers
         public void Delete(int id)
         {
         }
-        public class Problems
-        {
-            [JsonProperty("ProblemID")]
-            public string ProblemID { get; set; }
-
-            [JsonProperty("State")]
-            public string State { get; set; }
-        }
+        
     }
 }

@@ -27,7 +27,7 @@ namespace GenerateWordAPI
             host.Run();
         }
 
-        public static void CreateFromTemplate(string templateFilename, string documentFilename,int value)
+        public static void CreateFromTemplate(string templateFilename, string documentFilename,ReportData data)
         {
             // WordprocessingDocument.Create will overwrite an existing file. 
             // If we are using Open we have to delete the file first 
@@ -55,14 +55,14 @@ namespace GenerateWordAPI
                 // Add a Paragraph and a Run with the specified Text
                 var para = body.AppendChild(new Paragraph());
                 var run = para.AppendChild(new Run());
-                run.AppendChild(new Text("Hello World" + value));
+                run.AppendChild(new Text("Hello World" + data.name));
                 //
-                Table table = addTable(new string[,]{ { "Texas", "TX" }, { "California", "CA" }, { "New York", "NY" }, { "Massachusetts", "MA" }});
+                Table table = addTable(data.services);
                 document.Body.Append(table);
                 document.Save();
             }
         }
-        public static Table addTable(string[,] data)
+        public static Table addTable(List<Service> services)
         {
         
             Table table = new Table();
@@ -101,22 +101,113 @@ namespace GenerateWordAPI
                 }));
             table.AppendChild<TableProperties>(props);
 
-            for (var i = 0; i <= data.GetUpperBound(0); i++)
+            foreach (var service in services)
             {
                 var tr = new TableRow();
-                for (var j = 0; j <= data.GetUpperBound(1); j++)
-                {
+                    
+                    //Add name of service
                     var tc = new TableCell();
-                    tc.Append(new Paragraph(new Run(new Text(data[i, j]))));
+                    tc.Append(new Paragraph(new Run(new Text(service.name))));
                     // Assume you want columns that are automatically sized.
                     tc.Append(new TableCellProperties(
                       new TableCellWidth { Type = TableWidthUnitValues.Auto }));
                     tr.Append(tc);
-                }
+                    var tb = new TableCell();
+                    //Add availability of service
+                    tb.Append(new Paragraph(new Run(new Text(service.availability.ToString()))));
+                    // Assume you want columns that are automatically sized.
+                    tb.Append(new TableCellProperties(
+                    new TableCellWidth { Type = TableWidthUnitValues.Auto }));
+                    tr.Append(tb);
+                
                 table.Append(tr);
             }
             return table;
                        
+        }
+        public class Breaches
+        {
+        }
+
+        public class Server
+        {
+            public string ID { get; set; }
+            public double availability { get; set; }
+            public int availabilityOffPeakTarget { get; set; }
+            public int availabilityTarget { get; set; }
+            public Breaches breaches { get; set; }
+            public double down { get; set; }
+            public object downtime { get; set; }
+            public string name { get; set; }
+        }
+
+        public class Transactions
+        {
+        }
+
+        public class Service
+        {
+            public string ID { get; set; }
+            public double availability { get; set; }
+            public int availabilityOffPeakTarget { get; set; }
+            public int availabilityTarget { get; set; }
+            public double down { get; set; }
+            public string name { get; set; }
+            public List<Server> servers { get; set; }
+            public Transactions transactions { get; set; }
+        }
+
+        public class ReportData
+        {
+            public string ID { get; set; }
+            public long fromDate { get; set; }
+            public bool includeApp { get; set; }
+            public string name { get; set; }
+            public List<Service> services { get; set; }
+            public long toDate { get; set; }
+        }
+        public static void ReplaceTextByTag(string sdtBlockTag, string newtext, List<SdtBlock> sdtList)
+        {
+            // https://blogs.msdn.microsoft.com/brian_jones/2009/01/28/traversing-in-the-open-xml-dom/
+            // = mainDocumentPart.Document.Descendants<SdtBlock>().ToList();
+            SdtBlock sdtA = null;
+
+                foreach (SdtBlock sdt in sdtList)
+                {
+                    if (sdt.SdtProperties.GetFirstChild<Tag>().Val.Value == sdtBlockTag)
+                    {
+                        sdtA = sdt;
+                        break;
+                    }
+                }
+                SdtBlock cloneSdkt = (SdtBlock)sdtA.Clone();
+
+
+
+                OpenXmlElement sdtc = cloneSdkt.GetFirstChild<SdtContentBlock>();
+                //  OpenXmlElement parent = cloneSdkt.Parent;
+
+                OpenXmlElementList elements = cloneSdkt.ChildElements;
+
+                // var mySdtc = new SdtContentBlock(cloneSdkt.OuterXml);
+
+                foreach (OpenXmlElement elem in elements)
+                {
+                    string innerxml = elem.InnerText;
+                    if (innerxml.Length > 0)
+                    {
+                        string modified = "Class Name : My Class.Description : mydesc.AttributesNameDescriptionMy Attri name.my attri desc.Operations NameDescriptionmy ope name.my ope descriptn.";
+                        string replace = elem.InnerText.Replace(innerxml, modified);
+                        // mainDocumentPart.Document.Save();
+                    }
+                    // string text = parent.FirstChild.InnerText;
+                    // parent.Append((OpenXmlElement)elem.Clone());
+                }
+
+          
+
+
+            }
         }
     }
 }
