@@ -9,6 +9,8 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Newtonsoft.Json;
+using System.Diagnostics;
+
 
 namespace GenerateWordAPI
 {
@@ -39,7 +41,7 @@ namespace GenerateWordAPI
 
             // Copy the template to the output file name.
             File.Copy(templateFilename, documentFilename);
-
+            
             // Now open the copied file
             using (var wordDocument = WordprocessingDocument.Open(documentFilename, true))
             {
@@ -50,78 +52,70 @@ namespace GenerateWordAPI
                 var mainPart = wordDocument.MainDocumentPart;
                 var document = mainPart.Document;
                 var body = document.Body;
-                Run r = document.Descendants<Run>().First();
+                List<SdtElement> blocks = body.Descendants<SdtElement>().ToList();
 
-                r = replaceTextInRun(r, "Halloisen");
+                
+                ReplaceTagWithText("ccDocumentTitle", data.name, blocks);
+                
+
+                DateTime fromEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                fromEpoch = fromEpoch.AddMilliseconds(data.fromDate);
+                DateTime toEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                toEpoch = toEpoch.AddMilliseconds(data.toDate);
+
+                ReplaceTagWithText("ccDocumentSubtitle", fromEpoch.ToString("MMMM dd") + " - " + toEpoch.ToString("MMMM dd"), blocks);
 
                 // Add a Paragraph and a Run with the specified Text
-                var para = body.AppendChild(new Paragraph());
-                var run = para.AppendChild(new Run());
-                run.AppendChild(new Text(data.name));
-                //
-                Table table = addTable(data.services);
-                document.Body.Append(table);
+                // var para = body.AppendChild(new Paragraph());
+                // var run = para.AppendChild(new Run());
+
+                // Adding table of services
+
+                foreach(Service service in data.services)
+                {
+                    Paragraph para = body.AppendChild(new Paragraph());
+                    Run run = para.AppendChild(new Run());
+                    run.AppendChild(new Text(service.name));
+                    para.ParagraphProperties = new ParagraphProperties(new ParagraphStyleId() { Val = "Heading1" });
+                    if (service.name != "Other") { 
+                        Table table = addTable(service.servers);
+                        body.Append(table);
+                    }
+                    body.Append(new Break() { Type = BreakValues.Page });
+                    
+                }
+
+                //document.Body.Append(table);
                 document.Save();
             }
         }
-        public static Table addTable(List<Service> services)
+        public static Table addTable(List<Server> servers)
         {
-        
+
+            TableCellProperties tProps = new TableCellProperties(
+                      new TableCellWidth { Type = TableWidthUnitValues.Auto });
             Table table = new Table();
 
-            TableProperties props = new TableProperties(
-              new TableBorders(
-                new TopBorder
-                {
-                    Val = new EnumValue<BorderValues>(BorderValues.Single),
-                    Size = 12
-                },
-                new BottomBorder
-                {
-                    Val = new EnumValue<BorderValues>(BorderValues.Single),
-                    Size = 12
-                },
-                new LeftBorder
-                {
-                    Val = new EnumValue<BorderValues>(BorderValues.Single),
-                    Size = 12
-                },
-                new RightBorder
-                {
-                    Val = new EnumValue<BorderValues>(BorderValues.Single),
-                    Size = 12
-                },
-                new InsideHorizontalBorder
-                {
-                    Val = new EnumValue<BorderValues>(BorderValues.Single),
-                    Size = 12
-                },
-                new InsideVerticalBorder
-                {
-                    Val = new EnumValue<BorderValues>(BorderValues.Single),
-                    Size = 12
-                }));
-            table.AppendChild<TableProperties>(props);
+            TableProperties props = new TableProperties(new TableStyle() { Val = "TableGrid" });
+           table.AppendChild<TableProperties>(props);
 
-            foreach (var service in services)
+            //Table Header
+            var th = new TableRow();
+            th.Append(new TableCell(tProps, new Paragraph(new Run(new RunProperties(new Bold(), new Text("Server Name"))))));
+            th.Append(new TableCell(tProps, new Paragraph(new Run(new RunProperties(new Bold(), new Text("Availability"))))));
+            th.Append(new TableCell(tProps, new Paragraph(new Run(new RunProperties(new Bold(), new Text("Downtime"))))));
+            table.Append(th);
+            foreach (var server in servers)
             {
+
                 var tr = new TableRow();
-                    
-                    //Add name of service
-                    var tc = new TableCell();
-                    tc.Append(new Paragraph(new Run(new Text(service.name))));
-                    // Assume you want columns that are automatically sized.
-                    tc.Append(new TableCellProperties(
-                      new TableCellWidth { Type = TableWidthUnitValues.Auto }));
-                    tr.Append(tc);
-                    var tb = new TableCell();
-                    //Add availability of service
-                    tb.Append(new Paragraph(new Run(new Text(service.availability.ToString()))));
-                    // Assume you want columns that are automatically sized.
-                    tb.Append(new TableCellProperties(
-                    new TableCellWidth { Type = TableWidthUnitValues.Auto }));
-                    tr.Append(tb);
-                
+                //Add name of service
+                var tc = new TableCell();
+                tr.Append(tProps, new Paragraph(new Run(new Text(server.name)))));
+                tr.Append(tProps, new Paragraph(new Run(new Text(server.availability.ToString()))));
+                tr.Append(tProps, new Paragraph(new Run(new Text(server.downtime.ToString()))));
+                //TimeSpan time = TimeSpan.FromMilliseconds(server.downtime);
+
                 table.Append(tr);
             }
             return table;
@@ -183,47 +177,32 @@ namespace GenerateWordAPI
             return r;
         }
 
-        public static void ReplaceTextByTag(string sdtBlockTag, string newtext, List<SdtBlock> sdtList)
+        public static SdtElement FindBlockByTag(string sdtBlockTag, List<SdtElement> sdtList)
         {
             // https://blogs.msdn.microsoft.com/brian_jones/2009/01/28/traversing-in-the-open-xml-dom/
-            // = mainDocumentPart.Document.Descendants<SdtBlock>().ToList();
-            SdtBlock sdtA = null;
-
-                foreach (SdtBlock sdt in sdtList)
+            
+            SdtElement sdtA = null;
+            foreach (SdtElement sdt in sdtList)
                 {
-                    if (sdt.SdtProperties.GetFirstChild<Tag>().Val.Value == sdtBlockTag)
+                    //Console.Write(sdt.SdtProperties.GetFirstChild<Tag>().Val.Value);
+                if (sdt.SdtProperties.GetFirstChild<Tag>().Val.Value == sdtBlockTag)
                     {
                         sdtA = sdt;
                         break;
                     }
                 }
-                SdtBlock cloneSdkt = (SdtBlock)sdtA.Clone();
+            return sdtA;       
 
-
-
-                OpenXmlElement sdtc = cloneSdkt.GetFirstChild<SdtContentBlock>();
-                //  OpenXmlElement parent = cloneSdkt.Parent;
-
-                OpenXmlElementList elements = cloneSdkt.ChildElements;
-
-                // var mySdtc = new SdtContentBlock(cloneSdkt.OuterXml);
-
-                foreach (OpenXmlElement elem in elements)
-                {
-                    string innerxml = elem.InnerText;
-                    if (innerxml.Length > 0)
-                    {
-                        string modified = "Class Name : My Class.Description : mydesc.AttributesNameDescriptionMy Attri name.my attri desc.Operations NameDescriptionmy ope name.my ope descriptn.";
-                        string replace = elem.InnerText.Replace(innerxml, modified);
-                        // mainDocumentPart.Document.Save();
-                    }
-                    // string text = parent.FirstChild.InnerText;
-                    // parent.Append((OpenXmlElement)elem.Clone());
-                }
-
-          
-
-
+        }
+        public static void ReplaceTagWithText(string tag, string text, List<SdtElement> blocks)
+        {
+            Run r;
+            SdtElement stdE = FindBlockByTag(tag, blocks);
+            if (stdE != null)
+            {
+                r = stdE.Descendants<Run>().First();
+                r = replaceTextInRun(r, text);
+            }
         }
         
     }
