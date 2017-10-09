@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
+using Microsoft.AspNetCore.Http;
 //using Newtonsoft.Json;
 //using System.IO;
 
@@ -31,11 +33,24 @@ namespace GenerateWordAPI.Controllers
         [HttpPost]
         //public void Post([FromBody]string value)
         //public string Post([FromBody]string value)
-        public Program.ReportData Post([FromBody]Program.ReportData data)
+        //public async Program.ReportData Post([FromBody]Program.ReportData data)
+        public async void Post([FromBody]Program.ReportData data)
         {
-            Program.CreateFromTemplate("template.docx", "goodbye.docx", data);
-
-            return data;
+            
+            MemoryStream ms = new MemoryStream();
+            ms = Program.CreateFromTemplate("template.docx", "goodbye.docx", data);
+            Response.Clear();
+            Response.Headers.Add("content-disposition", "attachment; filename=\"" + "output" + ".docx\"");
+            Response.ContentType = "application/msword";
+            
+            await Response.Body.WriteAsync(ms.ToArray(), 0, ms.ToArray().Length);
+                       
+            
+            //            ms.CopyTo(Response.O);
+            //Response.WriteAsync(ms);
+            //Response.SendFileAsync(ms);
+            //HttpContext.Current.Response.TransmitFile(path)
+            //return data;
         }
 
         // PUT api/values/5

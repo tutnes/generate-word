@@ -29,7 +29,7 @@ namespace GenerateWordAPI
             host.Run();
         }
 
-        public static void CreateFromTemplate(string templateFilename, string documentFilename,ReportData data)
+        public static MemoryStream CreateFromTemplate(string templateFilename, string documentFilename,ReportData data)
         {
             // WordprocessingDocument.Create will overwrite an existing file. 
             // If we are using Open we have to delete the file first 
@@ -97,6 +97,9 @@ namespace GenerateWordAPI
 
                 //document.Body.Append(table);
                 document.Save();
+                MemoryStream ms = new MemoryStream();
+                document.Save(ms);
+                return ms;
             }
         }
         public static Table addTable(List<Server> servers)
