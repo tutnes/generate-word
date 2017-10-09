@@ -59,30 +59,40 @@ namespace GenerateWordAPI
                 
 
                 DateTime fromEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                fromEpoch = fromEpoch.AddMilliseconds(data.fromDate);
+                fromEpoch = fromEpoch.AddMilliseconds(data.fromDate+1);
                 DateTime toEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                 toEpoch = toEpoch.AddMilliseconds(data.toDate);
 
                 ReplaceTagWithText("ccDocumentSubtitle", fromEpoch.ToString("MMMM dd") + " - " + toEpoch.ToString("MMMM dd"), blocks);
 
-                // Add a Paragraph and a Run with the specified Text
-                // var para = body.AppendChild(new Paragraph());
-                // var run = para.AppendChild(new Run());
-
-                // Adding table of services
+                
 
                 foreach(Service service in data.services)
                 {
-                    Paragraph para = body.AppendChild(new Paragraph());
-                    Run run = para.AppendChild(new Run());
-                    run.AppendChild(new Text(service.name));
-                    para.ParagraphProperties = new ParagraphProperties(new ParagraphStyleId() { Val = "Heading1" });
-                    if (service.name != "Other") { 
-                        Table table = addTable(service.servers);
-                        body.Append(table);
+                    if (service.name != "Other")
+                    {
+                        Paragraph para = body.AppendChild(new Paragraph());
+                        Run run = para.AppendChild(new Run());
+                        run.AppendChild(new Text(service.name));
+                        para.ParagraphProperties = new ParagraphProperties(new ParagraphStyleId() { Val = "Heading1" });
+                        TableProperties props = new TableProperties(new TableStyle() { Val = "TableGrid" });
+                        Table serviceTable = new Table();
+                        serviceTable.AppendChild<TableProperties>(props);
+                        TableRow sName = new TableRow(new TableCell(new Paragraph(new Run(new RunProperties(new Bold(), new Text("Service Name"))))));
+                        sName.Append(new TableCell(new Paragraph(new Run(new Text(service.name)))));
+                        TableRow aVb = new TableRow(new TableCell(new Paragraph(new Run(new RunProperties(new Bold(), new Text("Availability"))))));
+                        aVb.Append(new TableCell(new ParagraphProperties(new Justification() { Val = JustificationValues.Right }), new Paragraph(new Run(new Text(service.availability.ToString())))));
+                        serviceTable.Append(sName);
+                        serviceTable.Append(aVb);
+                        
+                        body.Append(serviceTable);
+                        body.Append(new Paragraph());
+                        Table serverTable = addTable(service.servers);
+
+                        body.Append(serverTable);
+                        body.Append(new Break() { Type = BreakValues.Page });
                     }
-                    body.Append(new Break() { Type = BreakValues.Page });
-                    
+                                       
                 }
 
                 //document.Body.Append(table);
@@ -97,25 +107,24 @@ namespace GenerateWordAPI
             Table table = new Table();
 
             TableProperties props = new TableProperties(new TableStyle() { Val = "TableGrid" });
-           table.AppendChild<TableProperties>(props);
+            table.AppendChild<TableProperties>(props);
 
             //Table Header
             var th = new TableRow();
-            th.Append(new TableCell(tProps, new Paragraph(new Run(new RunProperties(new Bold(), new Text("Server Name"))))));
-            th.Append(new TableCell(tProps, new Paragraph(new Run(new RunProperties(new Bold(), new Text("Availability"))))));
-            th.Append(new TableCell(tProps, new Paragraph(new Run(new RunProperties(new Bold(), new Text("Downtime"))))));
+            th.Append(new TableCell(new Paragraph(new Run(new RunProperties(new Bold(), new Text("Server Name"))))));
+            th.Append(new TableCell(new Paragraph(new Run(new RunProperties(new Bold(), new Text("Availability"))))));
+            th.Append(new TableCell(new Paragraph(new Run(new RunProperties(new Bold(), new Text("Downtime"))))));
             table.Append(th);
             foreach (var server in servers)
             {
 
                 var tr = new TableRow();
                 //Add name of service
-                var tc = new TableCell();
-                tr.Append(tProps, new Paragraph(new Run(new Text(server.name)))));
-                tr.Append(tProps, new Paragraph(new Run(new Text(server.availability.ToString()))));
-                tr.Append(tProps, new Paragraph(new Run(new Text(server.downtime.ToString()))));
-                //TimeSpan time = TimeSpan.FromMilliseconds(server.downtime);
-
+                tr.Append(new TableCell(new Paragraph(new Run(new Text(server.name)))));
+                tr.Append(new TableCell(new ParagraphProperties(new Justification() { Val = JustificationValues.Right}), new Paragraph(new Run(new Text(server.availability.ToString())))));
+                TimeSpan time = TimeSpan.FromMilliseconds(server.downtime);
+                string str = time.ToString(@"hh\:mm");
+                tr.Append(new TableCell(new Paragraph(new Run(new Text(str + "h")))));
                 table.Append(tr);
             }
             return table;
@@ -133,7 +142,7 @@ namespace GenerateWordAPI
             public int availabilityTarget { get; set; }
             public Breaches breaches { get; set; }
             public double down { get; set; }
-            public object downtime { get; set; }
+            public double downtime { get; set; }
             public string name { get; set; }
         }
 
