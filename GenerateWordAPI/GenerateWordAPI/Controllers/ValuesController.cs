@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;
 using Microsoft.AspNetCore.Http;
+
 //using Newtonsoft.Json;
 //using System.IO;
 
@@ -18,15 +19,28 @@ namespace GenerateWordAPI.Controllers
         [HttpGet]
         public IEnumerable<string> Get()
         {
+
             return new string[] { "value1", "value2" };
         }
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async void Get(int id)
         {
+            MemoryStream ms = new MemoryStream();
+            Program.ReportData data = new Program.ReportData();
+            data.name = "Test";
+                       
             
-            return "value";
+            
+            ms = Program.CreateFromTemplate("template.docx", "goodbye.docx", data);
+            Response.Clear();
+            Response.Headers.Add("content-disposition", "attachment; filename=\"" + "output" + ".docx\"");
+            Response.ContentType = "application/msword";
+
+            await Response.Body.WriteAsync(ms.ToArray(), 0, ms.ToArray().Length);
+
+            //return "value";
         }
 
         // POST api/values

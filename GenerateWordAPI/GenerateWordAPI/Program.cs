@@ -66,8 +66,8 @@ namespace GenerateWordAPI
 
                 ReplaceTagWithText("ccDocumentSubtitle", fromEpoch.ToString("MMMM dd") + " - " + toEpoch.ToString("MMMM dd"), blocks);
 
-                
-
+                if (data.services != null)
+                { 
                 foreach(Service service in data.services)
                 {
                     if (service.name != "Other")
@@ -95,7 +95,7 @@ namespace GenerateWordAPI
                     }
                                        
                 }
-
+                }
                 //document.Body.Append(table);
                 document.Save();
                 MemoryStream ms = new MemoryStream();
