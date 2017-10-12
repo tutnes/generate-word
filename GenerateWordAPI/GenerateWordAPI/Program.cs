@@ -22,6 +22,7 @@ namespace GenerateWordAPI
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
+                .UseContentRoot(Directory.GetCurrentDirectory(  ))
                 .UseStartup<Startup>()
                 .UseApplicationInsights()
                 .Build();
