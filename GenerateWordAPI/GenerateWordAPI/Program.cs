@@ -87,7 +87,7 @@ namespace GenerateWordAPI
                         
                         body.Append(serviceTable);
                         body.Append(new Paragraph());
-                        Table serverTable = addTable(service.servers);
+                        Table serverTable = AddTable(service.servers);
 
                         body.Append(serverTable);
                         body.Append(new Break() { Type = BreakValues.Page });
@@ -102,7 +102,7 @@ namespace GenerateWordAPI
                 return ms;
             }
         }
-        public static Table addTable(List<Server> servers)
+        public static Table AddTable(List<Server> servers)
         {
 
             TableCellProperties tProps = new TableCellProperties(
