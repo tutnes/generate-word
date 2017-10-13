@@ -25,22 +25,17 @@ namespace GenerateWordAPI.Controllers
 
         // GET api/values/5
         [HttpGet("{id}")]
-        public async void Get(int id)
+        public FileStreamResult Get(int id)
         {
             MemoryStream ms = new MemoryStream();
             Program.ReportData data = new Program.ReportData();
             data.name = "Test";
-                       
-            
-            
             ms = Program.CreateFromTemplate("template.docx", "goodbye.docx", data);
-            Response.Clear();
+           
+            ms.Seek(0, SeekOrigin.Begin);
             Response.Headers.Add("content-disposition", "attachment; filename=\"" + "output" + ".docx\"");
-            Response.ContentType = "application/msword";
-
-            await Response.Body.WriteAsync(ms.ToArray(), 0, ms.ToArray().Length);
-
-            //return "value";
+            return new FileStreamResult(ms, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+           
         }
 
         // POST api/values
@@ -48,23 +43,13 @@ namespace GenerateWordAPI.Controllers
         //public void Post([FromBody]string value)
         //public string Post([FromBody]string value)
         //public async Program.ReportData Post([FromBody]Program.ReportData data)
-        public async void Post([FromBody]Program.ReportData data)
+        public FileStreamResult Post([FromBody]Program.ReportData data)
         {
-            
             MemoryStream ms = new MemoryStream();
             ms = Program.CreateFromTemplate("template.docx", "goodbye.docx", data);
-            Response.Clear();
+            ms.Seek(0, SeekOrigin.Begin);
             Response.Headers.Add("content-disposition", "attachment; filename=\"" + "output" + ".docx\"");
-            Response.ContentType = "application/msword";
-            
-            await Response.Body.WriteAsync(ms.ToArray(), 0, ms.ToArray().Length);
-                       
-            
-            //            ms.CopyTo(Response.O);
-            //Response.WriteAsync(ms);
-            //Response.SendFileAsync(ms);
-            //HttpContext.Current.Response.TransmitFile(path)
-            //return data;
+            return new FileStreamResult(ms, "application/vnd.openxmlformats-officedocument.wordprocessingml.document");
         }
 
         // PUT api/values/5

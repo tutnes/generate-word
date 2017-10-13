@@ -22,7 +22,7 @@ namespace GenerateWordAPI
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
-                .UseContentRoot(Directory.GetCurrentDirectory(  ))
+                .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseStartup<Startup>()
                 .UseApplicationInsights()
                 .Build();
@@ -30,7 +30,7 @@ namespace GenerateWordAPI
             host.Run();
         }
 
-        public static MemoryStream CreateFromTemplate(string templateFilename, string documentFilename,ReportData data)
+        public static MemoryStream CreateFromTemplate(string templateFilename, string documentFilename, ReportData data)
         {
             // WordprocessingDocument.Create will overwrite an existing file. 
             // If we are using Open we have to delete the file first 
@@ -42,7 +42,7 @@ namespace GenerateWordAPI
 
             // Copy the template to the output file name.
             File.Copy(templateFilename, documentFilename);
-            
+
             // Now open the copied file
             using (var wordDocument = WordprocessingDocument.Open(documentFilename, true))
             {
@@ -55,54 +55,64 @@ namespace GenerateWordAPI
                 var body = document.Body;
                 List<SdtElement> blocks = body.Descendants<SdtElement>().ToList();
 
-                
+
                 ReplaceTagWithText("ccDocumentTitle", data.name, blocks);
-                
+
 
                 DateTime fromEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                fromEpoch = fromEpoch.AddMilliseconds(data.fromDate+1);
+                fromEpoch = fromEpoch.AddMilliseconds(data.fromDate + 1);
                 DateTime toEpoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
                 toEpoch = toEpoch.AddMilliseconds(data.toDate);
 
                 ReplaceTagWithText("ccDocumentSubtitle", fromEpoch.ToString("MMMM dd") + " - " + toEpoch.ToString("MMMM dd"), blocks);
 
                 if (data.services != null)
-                { 
-                foreach(Service service in data.services)
                 {
-                    if (service.name != "Other")
+                    foreach (Service service in data.services)
                     {
-                        Paragraph para = body.AppendChild(new Paragraph());
-                        Run run = para.AppendChild(new Run());
-                        run.AppendChild(new Text(service.name));
-                        para.ParagraphProperties = new ParagraphProperties(new ParagraphStyleId() { Val = "Heading1" });
-                        TableProperties props = new TableProperties(new TableStyle() { Val = "TableGrid" });
-                        Table serviceTable = new Table();
-                        serviceTable.AppendChild<TableProperties>(props);
-                        TableRow sName = new TableRow(new TableCell(new Paragraph(new Run(new RunProperties(new Bold(), new Text("Service Name"))))));
-                        sName.Append(new TableCell(new Paragraph(new Run(new Text(service.name)))));
-                        TableRow aVb = new TableRow(new TableCell(new Paragraph(new Run(new RunProperties(new Bold(), new Text("Availability"))))));
-                        aVb.Append(new TableCell(new ParagraphProperties(new Justification() { Val = JustificationValues.Right }), new Paragraph(new Run(new Text(service.availability.ToString())))));
-                        serviceTable.Append(sName);
-                        serviceTable.Append(aVb);
-                        
-                        body.Append(serviceTable);
-                        body.Append(new Paragraph());
-                        Table serverTable = AddTable(service.servers);
+                        if (service.name != "Other")
+                        {
+                            Paragraph para = body.AppendChild(new Paragraph());
+                            Run run = para.AppendChild(new Run());
+                            run.AppendChild(new Text(service.name));
+                            para.ParagraphProperties = new ParagraphProperties(new ParagraphStyleId() { Val = "Heading1" });
+                            TableProperties props = new TableProperties(new TableStyle() { Val = "TableGrid" });
+                            Table serviceTable = new Table();
+                            serviceTable.AppendChild<TableProperties>(props);
+                            TableRow sName = new TableRow(new TableCell(new Paragraph(new Run(new RunProperties(new Bold(), new Text("Service Name"))))));
+                            sName.Append(new TableCell(new Paragraph(new Run(new Text(service.name)))));
+                            TableRow aVb = new TableRow(new TableCell(new Paragraph(new Run(new RunProperties(new Bold(), new Text("Availability"))))));
+                            aVb.Append(new TableCell(new ParagraphProperties(new Justification() { Val = JustificationValues.Right }), new Paragraph(new Run(new Text(service.availability.ToString())))));
+                            serviceTable.Append(sName);
+                            serviceTable.Append(aVb);
 
-                        body.Append(serverTable);
-                        body.Append(new Break() { Type = BreakValues.Page });
+                            body.Append(serviceTable);
+                            body.Append(new Paragraph());
+                            Table serverTable = AddTable(service.servers);
+
+                            body.Append(serverTable);
+                            body.Append(new Break() { Type = BreakValues.Page });
+                        }
+                        
                     }
-                                       
                 }
-                }
-                //document.Body.Append(table);
+                
+
                 document.Save();
-                MemoryStream ms = new MemoryStream();
-                document.Save(ms);
-                return ms;
+
+
             }
+            
+            FileStream file = new FileStream(documentFilename,FileMode.Open,FileAccess.Read);
+            MemoryStream ms = new MemoryStream();
+            file.CopyTo(ms);
+            file.Dispose();
+            return ms;
+            
+
         }
+
+    
         public static Table AddTable(List<Server> servers)
         {
 
