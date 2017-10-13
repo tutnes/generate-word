@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
-using Newtonsoft.Json;
+
 using System.Diagnostics;
 
 
@@ -22,7 +21,6 @@ namespace GenerateWordAPI
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
-                .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseStartup<Startup>()
                 .UseApplicationInsights()
                 .Build();
@@ -82,7 +80,7 @@ namespace GenerateWordAPI
                             TableRow sName = new TableRow(new TableCell(new Paragraph(new Run(new RunProperties(new Bold(), new Text("Service Name"))))));
                             sName.Append(new TableCell(new Paragraph(new Run(new Text(service.name)))));
                             TableRow aVb = new TableRow(new TableCell(new Paragraph(new Run(new RunProperties(new Bold(), new Text("Availability"))))));
-                            aVb.Append(new TableCell(new ParagraphProperties(new Justification() { Val = JustificationValues.Right }), new Paragraph(new Run(new Text(service.availability.ToString())))));
+                            aVb.Append(new TableCell(new ParagraphProperties(new Justification() { Val = JustificationValues.Right }), new Paragraph(new Run(new Text(Math.Round(service.availability,1).ToString())))));
                             serviceTable.Append(sName);
                             serviceTable.Append(aVb);
 
@@ -135,7 +133,7 @@ namespace GenerateWordAPI
                 var tr = new TableRow();
                 //Add name of service
                 tr.Append(new TableCell(new Paragraph(new Run(new Text(server.name)))));
-                tr.Append(new TableCell(new ParagraphProperties(new Justification() { Val = JustificationValues.Right}), new Paragraph(new Run(new Text(server.availability.ToString())))));
+                tr.Append(new TableCell(new ParagraphProperties(new Justification() { Val = JustificationValues.Right}), new Paragraph(new Run(new Text(Math.Round(server.availability,1).ToString())))));
                 TimeSpan time = TimeSpan.FromMilliseconds(server.downtime);
                 string str = time.ToString(@"hh\:mm");
                 tr.Append(new TableCell(new Paragraph(new Run(new Text(str + "h")))));
@@ -144,48 +142,8 @@ namespace GenerateWordAPI
             return table;
                        
         }
-        public class Breaches
-        {
-        }
-
-        public class Server
-        {
-            public string ID { get; set; }
-            public double availability { get; set; }
-            public int availabilityOffPeakTarget { get; set; }
-            public int availabilityTarget { get; set; }
-            public Breaches breaches { get; set; }
-            public double down { get; set; }
-            public double downtime { get; set; }
-            public string name { get; set; }
-        }
-
-        public class Transactions
-        {
-        }
-
-        public class Service
-        {
-            public string ID { get; set; }
-            public double availability { get; set; }
-            public int availabilityOffPeakTarget { get; set; }
-            public int availabilityTarget { get; set; }
-            public double down { get; set; }
-            public string name { get; set; }
-            public List<Server> servers { get; set; }
-            public Transactions transactions { get; set; }
-        }
-
-        public class ReportData
-        {
-            public string ID { get; set; }
-            public long fromDate { get; set; }
-            public bool includeApp { get; set; }
-            public string name { get; set; }
-            public List<Service> services { get; set; }
-            public long toDate { get; set; }
-        }
-        public static Run replaceTextInRun(Run r, string newText)
+        
+        public static Run ReplaceTextInRun(Run r, string newText)
         {
             string innerText = r.InnerText;
             string modifiedString = "";
@@ -224,7 +182,7 @@ namespace GenerateWordAPI
             if (stdE != null)
             {
                 r = stdE.Descendants<Run>().First();
-                r = replaceTextInRun(r, text);
+                r = ReplaceTextInRun(r, text);
             }
         }
         
