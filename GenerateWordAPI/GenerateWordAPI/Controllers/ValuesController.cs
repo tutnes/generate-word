@@ -12,6 +12,7 @@ namespace GenerateWordAPI.Controllers
     public class XmlController : Controller
     {
         [HttpPost]
+        //public Dynatrace Post([FromBody] Dynatrace data)
         public Dynatrace Post([FromBody] Dynatrace data)
         {
             return data;

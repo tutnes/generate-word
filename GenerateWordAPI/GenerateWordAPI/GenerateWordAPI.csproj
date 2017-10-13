@@ -5,9 +5,7 @@
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Include="SystemProfile.cs" />
-  </ItemGroup>
+
 
   <ItemGroup>
     <Content Include="wwwroot\index.html" />
